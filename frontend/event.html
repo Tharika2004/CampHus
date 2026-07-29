@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Details | CampHus</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-body: #F8F9FA; --text-main: #1B254B; --text-dim: #707EAE;
+            --primary: #9333ea; --card-bg: #ffffff; --border: #E2E8F0; --accent: #05cd99;
+        }
+        .dark-theme {
+            --bg-body: #0b1437; --text-main: #ffffff; --card-bg: #111c44;
+            --border: rgba(255, 255, 255, 0.1); --text-dim: #A3AED0;
+        }
+        * { box-sizing: border-box; font-family: 'Poppins', sans-serif; margin: 0; padding: 0; }
+        body { background-color: var(--bg-body); color: var(--text-main); min-height: 100vh; padding: 50px 20px; display: flex; justify-content: center; }
+
+        .event-wrapper {
+            display: flex; gap: 30px; width: 100%; max-width: 1050px;
+            background: var(--card-bg); padding: 25px; border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.05); border: 1px solid var(--border);
+        }
+
+        /* Poster Side */
+        .poster-side { flex: 0 0 420px; position: relative; }
+        .poster-card { 
+            width: 100%; height: 580px; border-radius: 15px; overflow: hidden; 
+            cursor: pointer; border: 1px solid var(--border); background: #eee;
+        }
+        .poster-card img { width: 100%; height: 100%; object-fit: contain; background: #f0f0f0; display: block; }
+
+        .type-badge { position: absolute; top: 15px; left: 15px; background: var(--primary); color: white; padding: 4px 15px; border-radius: 12px; font-size: 12px; font-weight: 600; z-index: 5; }
+
+        /* Details Side */
+        .details-side { flex: 1; display: flex; flex-direction: column; padding: 10px 0; }
+        .event-name { font-size: 30px; font-weight: 800; color: var(--text-main); line-height: 1.2; margin-bottom: 20px; }
+
+        .info-grid { display: grid; gap: 12px; margin-bottom: 20px; }
+        .info-row { display: flex; align-items: flex-start; gap: 12px; font-size: 15px; }
+        .info-row b { color: var(--text-main); min-width: 70px; }
+        .info-row span { color: var(--text-dim); }
+
+        .map-link { color: var(--primary); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; }
+
+        .source-tag { display: flex; align-items: center; gap: 10px; margin: 15px 0; font-weight: 600; font-size: 14px; }
+        .source-tag img { width: 24px; height: 24px; }
+
+        .desc-box { font-size: 14px; color: var(--text-dim); line-height: 1.6; margin-bottom: 25px; }
+        .desc-text { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+        .desc-text.expanded { -webkit-line-clamp: unset; display: block; }
+        .read-more { color: var(--primary); cursor: pointer; font-weight: 600; font-size: 13px; margin-top: 5px; display: inline-block; }
+
+        /* QR Section Container */
+        .qr-area { 
+            display: flex; align-items: center; gap: 20px; 
+            background: rgba(0,0,0,0.03); padding: 20px; border-radius: 15px; 
+            margin-top: auto; border: 1px dashed var(--border);
+        }
+        .qr-code { width: 110px; height: 110px; border: 1px solid var(--border); padding: 5px; border-radius: 10px; background: white; }
+        .qr-code img { width: 100%; height: 100%; }
+
+        /* Hand Animation: Pointing Left toward the QR 👈 */
+        /* Hand Animation: Points LEFT toward the QR code */
+@keyframes pointToLeftQR { 
+    0%, 100% { transform: translateX(0) rotate(-90deg); } 
+    50% { transform: translateX(-10px) rotate(-90deg); } 
+}
+
+.hand-anim { 
+    animation: pointToLeftQR 1s infinite; 
+    color: var(--primary); 
+    display: inline-block;
+    /* This makes the 'hand' icon point left */
+}
+        .reg-btn-purple { 
+            background: var(--primary); color: white; border: none; 
+            padding: 10px 25px; border-radius: 25px; font-weight: 700; 
+            cursor: default; opacity: 0.9; margin-top: 8px; font-size: 14px; width: 100%;
+        }
+
+        .full-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: none; justify-content: center; align-items: center; }
+        .full-overlay img { max-width: 95%; max-height: 95%; border-radius: 10px; }
+
+        @media (max-width: 850px) { .event-wrapper { flex-direction: column; } .poster-side { flex: none; width: 100%; } .poster-card { height: 450px; } }
+    </style>
+</head>
+<body>
+
+    <a href="home.html" style="position: fixed; top: 20px; left: 20px; text-decoration: none; color: var(--primary); font-weight: 700; z-index: 100;">← Back</a>
+
+    <div class="event-wrapper" id="eventContent">
+        <p>Loading...</p>
+    </div>
+
+    <div class="full-overlay" id="fullOverlay" onclick="this.style.display='none'">
+        <img id="fullImg" src="">
+    </div>
+<script>
+    if(localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark-theme');
+
+    // Inga current event data-vai store panna oru global variable
+    let currentEventData = null;
+
+    async function loadEvent() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const id = urlParams.get('id');
+        if(!id) return;
+
+        try {
+            let ev = null;
+
+            // 1. Backend check
+            try {
+                const res = await fetch(`https://tharika2004-event-project.hf.space/get-events`);
+                const data = await res.json();
+                ev = data.find(e => String(e.id) === String(id));
+            } catch (err) { console.log("API check skipped"); }
+
+            // 2. Local Storage check
+            if (!ev) {
+                const localEvents = JSON.parse(localStorage.getItem("myPostedEvents") || "[]");
+                ev = localEvents.find(e => String(e.id) === String(id));
+            }
+
+            if (!ev) {
+                document.getElementById('eventContent').innerHTML = "<p style='text-align:center; padding:50px;'>Event Not Found</p>";
+                return;
+            }
+
+            // Global variable-la save panrom so handleRegistration can use it
+            currentEventData = ev;
+
+            // Poster Image Logic
+            let poster = "";
+            if (ev.poster_image) {
+                poster = (ev.poster_image.startsWith('http') || ev.poster_image.startsWith('data:image')) 
+                         ? ev.poster_image 
+                         : `https://tharika2004-event-project.hf.space/posters/${ev.poster_image}`;
+            } else {
+                poster = `https://via.placeholder.com/600x800?text=No+Poster`;
+            }
+
+            const mapQuery = encodeURIComponent(`${ev.venue || ''} ${ev.college_name || ''}`);
+            const mapUrl = `https://www.google.com/maps/search/?api=1&query=${mapQuery}`;
+
+            const sourceLink = ev.source_link || '#';
+            const platformFromDB = (ev.source_platform || "Telegram").toLowerCase();
+
+            let sourceIcon = "https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg"; 
+            let sourceName = "Telegram";
+
+            if (platformFromDB === "instagram") {
+                sourceIcon = "https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg";
+                sourceName = "Instagram";
+            }
+
+            const city = ev.city || "Chennai";
+            const state = ev.state || "Tamil Nadu";
+
+            // QR Logic
+            const hasQR = ev.qr_data && ev.qr_data !== "null" && ev.qr_data.trim() !== "";
+            const qrImg = hasQR ? `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(ev.qr_data)}` : null;
+
+            let qrContentHTML = "";
+            if (qrImg) {
+                qrContentHTML = `
+                    <div class="qr-code"><img src="${qrImg}"></div>
+                    <div style="flex:1">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:5px">
+                            <i data-lucide="hand" class="hand-anim" size="24"></i>
+                            <span style="font-weight:700; font-size:15px">Register Here</span>
+                        </div>
+                        <button class="reg-btn-purple" style="cursor:pointer; opacity:1;" onclick="handleRegistration()">
+                            Scan / Open Link
+                        </button>
+                    </div>`;
+            } else {
+                qrContentHTML = `
+                    <div style="flex:1; text-align:center; padding: 18px; background: rgba(147, 51, 234, 0.08); border-radius: 15px;">
+                        <p style="font-weight:700; font-size:15px; margin-bottom: 5px;">Scan Poster QR</p>
+                        <button class="reg-btn-purple" style="cursor:pointer; opacity:1;" onclick="handleRegistration()">
+                            I am Registering ✅
+                        </button>
+                    </div>`;
+            }
+
+            document.getElementById('eventContent').innerHTML = `
+                <div class="poster-side">
+                    <div class="type-badge">${ev.event_type || 'Event'}</div>
+                    <div class="poster-card" onclick="showFull('${poster}')">
+                        <img src="${poster}" onerror="this.src='https://via.placeholder.com/600x800?text=Poster+Not+Found'">
+                    </div>
+                </div>
+                <div class="details-side">
+                    <h1 class="event-name">${ev.event_name}</h1>
+                    <div class="info-grid">
+                        <div class="info-row"><i data-lucide="calendar" size="18"></i> <b>When:</b> <span>${ev.event_date || 'TBA'}</span></div>
+                        <div class="info-row"><i data-lucide="school" size="18"></i> <b>College:</b> <span>${ev.college_name || 'TBA'}</span></div>
+                        <div class="info-row"><i data-lucide="map" size="18"></i> <b>Location:</b> <span>${city}, ${state}</span></div>
+                        <div class="info-row">
+                            <i data-lucide="map-pin" size="18"></i> 
+                            <div>
+                                <b>Venue:</b> <span>${ev.venue || 'Campus'}</span><br>
+                                <a href="${mapUrl}" target="_blank" class="map-link">📍 View on Google Map</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="source-tag">
+                        <img src="${sourceIcon}" width="20">
+                        <span>Source: <a href="${sourceLink}" target="_blank" style="color:var(--primary); text-decoration:none;">@CampHusOfficial (${sourceName})</a></span>
+                    </div>
+                    <div class="desc-box">
+                        <div class="desc-text" id="dt">${ev.description || 'Welcome! Register soon for this event.'}</div>
+                        <span class="read-more" onclick="toggleD()">Read More</span>
+                    </div>
+                    <div class="qr-area">${qrContentHTML}</div>
+                </div>
+            `;
+            
+            if(window.lucide) lucide.createIcons();
+        } catch (e) { console.error(e); }
+    }
+
+    // FIXED FUNCTION: Ippo idhu global variable-la irundhu data edukkum
+    function handleRegistration() {
+        if (!currentEventData) return;
+
+        const userConfirmed = confirm("Would you like to save this event to your 'My Events' list? \\n\\nClick 'OK' to save it, or 'Cancel' to just open the link.");
+        
+        if (userConfirmed) {
+            let registered = JSON.parse(localStorage.getItem("myRegisteredEvents") || "[]");
+            const exists = registered.some(e => String(e.id) === String(currentEventData.id));
+            
+            if (!exists) {
+                registered.push(currentEventData);
+                localStorage.setItem("myRegisteredEvents", JSON.stringify(registered));
+                alert("Event successfully saved to 'My Events'! 🎉");
+            } else {
+                alert("This event is already in your list.");
+            }
+        }
+
+        if (currentEventData.source_link && currentEventData.source_link.startsWith('http')) {
+            window.open(currentEventData.source_link, '_blank');
+        }
+    }
+
+    function showFull(s) {
+        document.getElementById('fullImg').src = s;
+        document.getElementById('fullOverlay').style.display = 'flex';
+    }
+
+    function toggleD() {
+        document.getElementById('dt').classList.toggle('expanded');
+    }
+
+    window.onload = loadEvent;
+</script>
+</body>
+</html>

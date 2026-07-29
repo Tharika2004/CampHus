@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CampHus | Reset Password</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0; padding: 0; min-height: 100vh; display: flex; justify-content: center; align-items: center;
+            background: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.75)), 
+                        url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1920&q=80');
+            background-size: cover; background-position: center; font-family: 'Poppins', sans-serif;
+        }
+        .login-card {
+            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 40px; border-radius: 24px; width: 100%; max-width: 380px; text-align: center; color: white;
+        }
+        input {
+            width: 100%; padding: 15px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px; color: white; outline: none; margin-bottom: 15px;
+        }
+        button {
+            width: 100%; padding: 15px; border-radius: 30px; background: #9333ea; border: none;
+            color: white; font-weight: 600; cursor: pointer; transition: 0.3s;
+        }
+        button:hover { background: #8a63ff; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h2 style="margin-bottom: 10px;">New Password</h2>
+        <p style="font-size: 14px; color: rgba(255,255,255,0.7); margin-bottom: 25px;">Set a strong new password</p>
+        <input type="text" id="otp" placeholder="Enter 6-digit OTP">
+        <input type="password" id="newPass" placeholder="New Password">
+        <button onclick="resetPass()">Reset Password</button>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        async function resetPass(){
+            const otp=document.getElementById("otp").value;
+            const pass=document.getElementById("newPass").value;
+            if(Date.now() > localStorage.getItem("otpExpiry")){ alert("OTP expired"); return; }
+            if(otp !== localStorage.getItem("otp")){ alert("Wrong OTP"); return; }
+            let users = JSON.parse(localStorage.getItem("users"));
+            let email = localStorage.getItem("resetEmail");
+            const hashed = await hashPassword(pass);
+            users = users.map(u=>{ if(u.email===email) u.password=hashed; return u; });
+            localStorage.setItem("users",JSON.stringify(users));
+            alert("Password updated ✅");
+            window.location="login.html";
+        }    
+    </script>
+</body>
+</html>

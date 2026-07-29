@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampHus | Verify OTP</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0; padding: 0; min-height: 100vh; display: flex; justify-content: center; align-items: center;
+            background: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.75)), 
+                        url('https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=1920&q=80');
+            background-size: cover; background-position: center; font-family: 'Poppins', sans-serif;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2); padding: 40px; border-radius: 24px; width: 100%;
+            max-width: 380px; text-align: center; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5); color: white;
+        }
+
+        .otp-input {
+            width: 100%; padding: 15px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px; color: white; outline: none; font-size: 24px; text-align: center;
+            letter-spacing: 8px; margin: 20px 0; transition: 0.3s;
+        }
+
+        .otp-input:focus { border-color: #9d7cff; box-shadow: 0 0 15px rgba(157, 124, 255, 0.3); }
+
+        .verify-btn {
+            width: 100%; padding: 15px; border-radius: 30px; background: #9333ea; border: none;
+            color: white; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.3s;
+        }
+
+        .verify-btn:hover { background: #8a63ff; transform: translateY(-2px); }
+
+        .timer { font-size: 14px; color: rgba(255, 255, 255, 0.6); margin-top: 15px; }
+        .resend { color: #9d7cff; cursor: pointer; font-weight: 600; display: none; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h2 style="margin-bottom: 10px;">Email Verification</h2>
+        <p style="font-size: 14px; color: rgba(255,255,255,0.7);">Enter the code sent to your email</p>
+        
+        <input type="text" id="otp" maxlength="6" placeholder="______" class="otp-input">
+        
+        <div class="timer" id="timer"></div>
+        <div class="resend" id="resend" onclick="resendOTP()">Resend OTP</div>
+        
+        <button class="verify-btn" onclick="verifyOTP()">Verify Account</button>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+    // --- TIMER & RESEND LOGIC ---
+    let timeLeft = 60;
+    const timerElem = document.getElementById("timer");
+    const resendElem = document.getElementById("resend");
+
+    function startTimer() {
+        resendElem.style.display = "none";
+        timerElem.style.display = "block";
+        
+        let timer = setInterval(() => {
+            if(timeLeft <= 0) {
+                clearInterval(timer);
+                timerElem.style.display = "none";
+                resendElem.style.display = "block";
+            } else {
+                timerElem.innerText = `Resend available in ${timeLeft}s`;
+            }
+            timeLeft -= 1;
+        }, 1000);
+    }
+    
+    startTimer();
+
+    function resendOTP() {
+        const email = localStorage.getItem("otpEmail");
+        if(email) {
+            sendOTP(email).then(() => {
+                alert("A new OTP has been sent to your email! 📩");
+                timeLeft = 60; 
+                startTimer();
+            });
+        }
+    }
+
+    // --- UPDATED VERIFICATION LOGIC ---
+    async function verifyOTP() {
+    const enteredOTP = document.getElementById("otp").value.trim();
+    const savedOTP = localStorage.getItem("otp"); 
+    const expiry = localStorage.getItem("otpExpiry");
+    const tempUserData = localStorage.getItem("tempUser");
+
+    if (!tempUserData) {
+        alert("Registration data missing. Please register again.");
+        window.location.href = "register.html";
+        return;
+    }
+
+    const tempUser = JSON.parse(tempUserData);
+
+    // 1. Check OTP and Expiry
+    if (enteredOTP == savedOTP && Date.now() < parseInt(expiry)) {
+        console.log("OTP Matched! Syncing with Database...");
+        
+        try {
+            // 2. BACKEND SYNC (Mukhya Step)
+            // Indha step success aana dhaan, neenga vera device-la login panna mudiyum
+            const syncResponse = await fetch('https://tharika2004-event-project.hf.space/sync-user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: tempUser.name, email: tempUser.email })
+            });
+
+            if (!syncResponse.ok) {
+                console.warn("Backend sync failed, but saving locally.");
+            }
+
+            // 3. Save to LocalStorage for offline/immediate use
+            let users = JSON.parse(localStorage.getItem("users")) || [];
+            if (!users.find(u => u.email.toLowerCase() === tempUser.email.toLowerCase())) {
+                users.push(tempUser);
+                localStorage.setItem("users", JSON.stringify(users));
+            }
+
+            // 4. Cleanup and Success
+            localStorage.removeItem("otp");
+            localStorage.removeItem("tempUser");
+            localStorage.removeItem("otpEmail");
+            
+            alert("Account Verified Successfully! 🎉 Now you can Login.");
+            window.location.href = "login.html";
+
+        } catch (err) {
+            console.error("Sync Error:", err);
+            // Error vandhalum, local-ah save aayirukkum
+            alert("Verification done (Local). Login to continue.");
+            window.location.href = "login.html";
+        }
+    } else {
+        alert("Invalid or Expired OTP! ❌");
+    }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampHus | Register</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Dark Jelly Theme Background */
+        body.login-body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Dark background with a professional event image overlay */
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+                        url('https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        
+        /* Glassmorphism Card (Black Jelly Effect) */
+        .login-card {
+            background: rgba(255, 255, 255, 0.1); /* Semi-transparent white */
+            backdrop-filter: blur(15px); /* Frosty glass effect */
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 40px;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            color: white;
+        }
+
+        h1.brand-logo {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: white;
+        }
+
+        p.subtitle {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 30px;
+        }
+
+        /* Dark Jelly Input Styling */
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: white;
+            outline: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .input-group input:focus {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #9d7cff;
+            box-shadow: 0 0 15px rgba(157, 124, 255, 0.3);
+        }
+
+        /* Primary Purple Button */
+        .reg-btn {
+            width: 100%;
+            padding: 15px;
+            border-radius: 30px;
+            background: #9333ea; /* Premium Purple */
+            border: none;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+           }
+
+        .reg-btn:hover {
+            background: #8a63ff;
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px rgba(157, 124, 255, 0.4);
+        }
+
+        .login-link {
+            margin-top: 25px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .login-link a {
+            color: #9d7cff;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="login-body">
+
+<div class="login-card">
+    <h1 class="brand-logo">CampHus</h1>
+    <h2 style="margin-bottom: 5px; font-weight: 600;">Create Account</h2>
+    <p class="subtitle">Join the college community 🚀</p>
+
+    <div class="input-group">
+        <input type="text" id="name" placeholder="Full Name">
+    </div>
+    <div class="input-group">
+        <input type="email" id="email" placeholder="Enter Email ID">
+    </div>
+    <div class="input-group">
+        <input type="password" id="password" placeholder="Enter Password">
+    </div>
+
+    <button class="reg-btn" onclick="registerUser()">Send OTP</button>
+
+    <p class="login-link">
+        Already have an account? <a href="login.html">Login</a>
+    </p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="js/auth.js"></script>
+
+<script>
+    /**
+     * Handles the User Registration Process
+     * 1. Validates input
+     * 2. Checks if user already exists in LocalStorage
+     * 3. Hashes the password for security
+     * 4. Saves data temporarily and sends OTP
+     */
+    async function registerUser() {
+    const name = document.getElementById("name").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    if (!name || !email || !password) {
+        alert("Please fill in all fields.");
+        return;
+    }
+
+    // Email Check
+    let users = JSON.parse(localStorage.getItem("users")) || [];
+    if (users.find(u => u.email === email)) {
+        alert("Email already exists! Please login.");
+        return;
+    }
+
+    const regBtn = document.querySelector(".reg-btn");
+    regBtn.innerText = "Sending OTP... ⏳";
+    regBtn.disabled = true;
+
+    try {
+        // 1. Hash the password FIRST
+        const hashed = await hashPassword(password);
+        
+        // 2. Save to Temp Storage
+        const tempUserData = { name, email, password: hashed };
+        localStorage.setItem("tempUser", JSON.stringify(tempUserData));
+
+        // 3. Send OTP via EmailJS
+        await sendOTP(email);
+        
+        alert("OTP Sent Successfully! Check your mail. ✅");
+        window.location.href = "otp.html"; // Redirection inga dhaan nadakkum
+
+    } catch (err) {
+        console.error("Registration Error:", err);
+        alert("Error: OTP anuppa mudiyala. Check console! ❌");
+        regBtn.innerText = "Send OTP";
+        regBtn.disabled = false;
+    }
+}
+</script>
+</body>
+</html>

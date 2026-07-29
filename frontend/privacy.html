@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy | CampHus</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+    (function() {
+        const theme = localStorage.getItem('theme');
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark-theme');
+        }
+    })();
+</script>
+    <style>
+        :root {
+            --bg-body: #F4F7FE;
+            --text-main: #1B254B;
+            --primary: #9333ea;
+            --card-bg: #ffffff;
+            --border: #E2E8F0;
+            --text-dim: #A3AED0; /* Keeping this for last updated text */
+            --pure-black: #000000; /* New variable for black text */
+        }
+
+        .dark-theme {
+    --bg-body: #0f172a;
+    --sidebar-bg: #111c44;
+    --text-main: #ffffff;
+    --card-bg: rgba(255, 255, 255, 0.1);
+    --border: rgba(255, 255, 255, 0.1);
+    --primary-light: rgba(147, 51, 234, 0.2);
+    --pure-black: #ffffff;
+}
+
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background: var(--bg-body); 
+            color: var(--text-main); 
+            margin: 0; padding: 40px 20px; 
+            transition: 0.3s ease;
+            display: flex; justify-content: center;
+        }
+
+        .container { 
+            background: var(--card-bg); padding: 40px; 
+            border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
+            max-width: 600px; width: 100%; border: 1px solid var(--border);
+        }
+
+        .header-area { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; }
+        
+        h1 { font-size: 24px; font-weight: 700; margin: 0; }
+        h2 { font-size: 18px; color: var(--primary); margin-top: 25px; margin-bottom: 10px; font-weight: 600; }
+        
+        /* Updated Paragraph Styling to Black */
+        p { 
+            font-size: 14px; 
+            line-height: 1.7; 
+            color: var(--pure-black); /* Changed from --text-dim to --pure-black */
+            margin-bottom: 18px; 
+            font-weight: 400;
+        }
+
+        .back-btn { 
+            cursor: pointer; color: var(--primary); transition: 0.3s;
+        }
+        .back-btn:hover { transform: translateX(-5px); }
+
+        /* Keeping this ash color for timestamp */
+        .last-updated { font-size: 12px; color: var(--text-dim); opacity: 0.8; font-style: italic; margin-bottom: 25px; display: block;}
+
+        .understand-btn {
+            width: 100%; padding: 14px; margin-top: 30px; 
+            border-radius: 25px; border: none; 
+            background: var(--primary); color: white; 
+            font-weight: 600; cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(147, 51, 234, 0.3);
+        }
+        .understand-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(147, 51, 234, 0.4); }
+    </style>
+    <script>
+        if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark-theme');
+    </script>
+</head>
+<body>
+    <div class="container">
+        <header class="header-area">
+            <i data-lucide="arrow-left" class="back-btn" onclick="location.href='settings.html'"></i>
+            <h1>Privacy Policy</h1>
+        </header>
+
+        <span class="last-updated">Last Updated: March 2026</span>
+
+        <section>
+            <h2>1. Information We Collect</h2>
+            <p>At CampHus, we collect basic information like your Name, College Email, and Preferences to provide a personalized campus experience. This data is stored locally on your device or our secure database.</p>
+
+            <h2>2. How We Use Data</h2>
+            <p>Your data is used to manage event registrations, allow you to post events, and notify you about upcoming campus activities. We do not sell your personal data to third parties.</p>
+
+            <h2>3. Data Security</h2>
+            <p>We implement industry-standard security measures to protect your information. However, as no system is 100% secure, we encourage users to use strong passwords.</p>
+
+            <h2>4. Cookies & Local Storage</h2>
+            <p>We use local storage and cookies to remember your theme preferences (Dark/Light mode) and login session.</p>
+
+            <h2>5. Contact Us</h2>
+            <p>If you have any questions regarding this policy, feel free to reach out to the CampHus Support Team.</p>
+        </section>
+
+        <button class="understand-btn" onclick="location.href='settings.html'">
+            I Understand
+        </button>
+    </div>
+
+    <script>lucide.createIcons();</script>
+</body>
+</html>

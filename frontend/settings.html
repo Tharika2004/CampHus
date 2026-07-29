@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Settings | CampHus</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-body: #F4F7FE;
+            --text-main: #1B254B;
+            --primary: #9333ea;
+            --primary-light: #f3e8ff;
+            --card-bg: #ffffff;
+            --border: #E2E8F0;
+            --text-dim: #A3AED0;
+        }
+
+        .dark-theme {
+    --bg-body: #0f172a;
+    --sidebar-bg: #111c44;
+    --text-main: #ffffff;
+    --card-bg: rgba(255, 255, 255, 0.1);
+    --border: rgba(255, 255, 255, 0.1);
+    --primary-light: rgba(147, 51, 234, 0.2);
+    --pure-black: #ffffff;
+}
+
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background: var(--bg-body); 
+            color: var(--text-main); 
+            margin: 0; padding: 40px 20px; 
+            transition: 0.3s ease;
+            display: flex; justify-content: center; min-height: 100vh;
+        }
+
+        .container { 
+            background: var(--card-bg); padding: 35px; 
+            border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
+            max-width: 480px; width: 100%; border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Stats Section */
+        .stats-grid { 
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; 
+        }
+        .stat-card { 
+            background: var(--primary-light); padding: 15px; border-radius: 18px; 
+            text-align: center; border: 1px solid var(--primary);
+        }
+        .stat-card h4 { margin: 0; color: var(--primary); font-size: 20px; }
+        .stat-card p { margin: 0; font-size: 11px; font-weight: 600; opacity: 0.8; }
+
+        /* List Items */
+        .settings-list { margin-top: 25px; }
+        .setting-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 0; border-bottom: 1px solid var(--border);
+        }
+        .setting-info { display: flex; align-items: center; gap: 12px; }
+        .setting-info i { color: var(--primary); }
+        
+        /* Toggle Switch */
+        .switch {
+            position: relative; display: inline-block; width: 40px; height: 22px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc; transition: .4s; border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 16px; width: 16px;
+            left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(18px); }
+
+        .section-label { 
+            font-size: 11px; font-weight: 800; color: var(--text-dim); 
+            text-transform: uppercase; letter-spacing: 1.5px; margin: 25px 0 10px; display: block;
+        }
+
+        .logout-btn {
+            width: 100%; padding: 14px; margin-top: 30px; border-radius: 20px;
+            border: 1px solid #ff5e5e; background: transparent; color: #ff5e5e;
+            font-weight: 600; cursor: pointer; transition: 0.3s;
+        }
+        .logout-btn:hover { background: #ff5e5e; color: white; }
+
+        .header-area { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; }
+        .profile-box { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 25px; text-align: center; }
+        .avatar { width: 90px; height: 90px; border-radius: 50%; overflow: hidden; border: 3px solid var(--primary); }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .edit-link { color: var(--primary); font-size: 13px; font-weight: 600; text-decoration: none; margin-top: 5px; cursor: pointer; }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; 
+            width: 100%; height: 100%; background: rgba(0,0,0,0.6); 
+            z-index: 1000; align-items: center; justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: var(--card-bg); padding: 30px; border-radius: 25px; 
+            width: 85%; max-width: 380px; border: 1px solid var(--border);
+            text-align: left; animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .changelog-list { list-style: none; padding: 0; margin: 20px 0; }
+        .changelog-list li { font-size: 13px; margin-bottom: 12px; display: flex; gap: 10px; }
+        .version-tag {
+            background: var(--primary-light); color: var(--primary);
+            padding: 2px 8px; border-radius: 6px; font-weight: 700; font-size: 10px;
+        }
+    </style>
+
+    <script>
+        if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark-theme');
+    </script>
+</head>
+<body>
+    <div class="container">
+        <header class="header-area">
+            <i data-lucide="arrow-left" style="cursor:pointer" onclick="location.href='home.html'"></i>
+            <h2 style="margin: 0; font-size: 20px;">Settings</h2>
+        </header>
+
+        <div class="profile-box">
+            <div class="avatar" id="avatarDisplay"><i data-lucide="user" size="40"></i></div>
+            <h3 id="userName" style="margin: 5px 0 0;">Student Name</h3>
+            <p id="userEmail" style="margin: 0; font-size: 13px; color: var(--text-dim);"></p>
+            <a onclick="location.href='edit-profile.html'" class="edit-link">Edit Profile</a>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h4 id="countPosted">0</h4>
+                <p>POSTED</p>
+            </div>
+            <div class="stat-card">
+                <h4 id="countReg">0</h4>
+                <p>REGISTERED</p>
+            </div>
+        </div>
+
+        <span class="section-label">Preferences</span>
+        <div class="settings-list">
+            <div class="setting-item">
+                <div class="setting-info"><i data-lucide="moon" size="18"></i> <span>Dark Mode</span></div>
+                <label class="switch">
+                    <input type="checkbox" id="darkToggle" onchange="toggleDark()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="setting-item">
+                <div class="setting-info"><i data-lucide="bell" size="18"></i> <span>Notifications</span></div>
+                <label class="switch">
+                    <input type="checkbox" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <span class="section-label">Account</span>
+        <div class="settings-list">
+            <div class="setting-item" style="cursor:pointer" onclick="location.href='privacy.html'">
+                <div class="setting-info"><i data-lucide="lock" size="18"></i> <span>Privacy Policy</span></div>
+                <i data-lucide="chevron-right" size="16"></i>
+            </div>
+            
+            <div class="setting-item" style="cursor:pointer" onclick="showChangelog()">
+                <div class="setting-info">
+                    <i data-lucide="info" size="18"></i> 
+                    <div>
+                        <span>App Version</span>
+                        <p style="font-size: 10px; color: var(--text-dim); margin: 0;">What's new?</p>
+                    </div>
+                </div>
+                <span style="font-size: 12px; color: var(--primary); font-weight: 700;">1.0.4</span>
+            </div>
+        </div>
+
+        <button class="logout-btn" onclick="logout()">Log Out</button>
+    </div>
+
+    <div id="versionModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 style="margin: 0; color: var(--primary); font-size: 20px;">CampHus Updates 🚀</h3>
+            <p style="font-size: 12px; color: var(--text-dim); margin-top: 5px;">Latest Version: 1.0.4</p>
+            
+            <ul class="changelog-list">
+                <li><span class="version-tag">1.0.4</span> Added Privacy Policy & UI Fixes</li>
+                <li><span class="version-tag">1.0.3</span> Dark Mode & Theme Sync</li>
+                <li><span class="version-tag">1.0.2</span> Profile Editing & Photo Upload</li>
+                <li><span class="version-tag">1.0.1</span> Dashboard Grid & Event Stats</li>
+            </ul>
+
+            <button onclick="closeChangelog()" style="width:100%; padding:14px; background:var(--primary); color:white; border:none; border-radius:20px; cursor:pointer; font-weight:600;">
+                Awesome!
+            </button>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+    // Initialize Lucide Icons
+    if (window.lucide) lucide.createIcons();
+
+    function toggleDark() {
+    const isChecked = document.getElementById("darkToggle").checked;
+    if (isChecked) {
+        // html tag-ku class add panrom (Universal approach)
+        document.documentElement.classList.add('dark-theme');
+        localStorage.setItem('theme', 'dark');
+    } else {
+        document.documentElement.classList.remove('dark-theme');
+        localStorage.setItem('theme', 'light');
+    }
+    
+    // Icons color fix panna (Lucide update)
+    if (window.lucide) lucide.createIcons();
+}
+
+// window.onload kulla theme state-ai check panna logic:
+window.onload = function() {
+    // ... unga old profile code inga irukkum ...
+
+    const savedTheme = localStorage.getItem('theme');
+    const isDark = savedTheme === 'dark';
+
+    // Update Toggle Switch State
+    document.getElementById("darkToggle").checked = isDark;
+    
+    if (isDark) {
+        document.documentElement.classList.add('dark-theme');
+    } else {
+        document.documentElement.classList.remove('dark-theme');
+    }
+    
+    // Baki irukkira stats calculation logic code...
+};
+    function logout() {
+        if(confirm("Are you sure you want to logout? 🔒")) {
+            // Clear session but keep preferences
+            localStorage.removeItem("loggedInUser");
+            window.location.href = "login.html";
+        }
+    }
+
+    // Modal Control Logic
+    function showChangelog() {
+        document.getElementById('versionModal').style.display = 'flex';
+    }
+    function closeChangelog() {
+        document.getElementById('versionModal').style.display = 'none';
+    }
+
+    window.onload = function() {
+        const user = localStorage.getItem("loggedInUser") || "Guest User";
+        const email = localStorage.getItem("userEmail") || "student@college.edu";
+        const savedPic = localStorage.getItem('userProfilePic');
+        const isDark = localStorage.getItem('theme') === 'dark';
+
+        // Update Profile Info
+        document.getElementById("userName").innerText = user;
+        document.getElementById("userEmail").innerText = email;
+        
+        // Update Theme Switch State
+        document.getElementById("darkToggle").checked = isDark;
+        if (isDark) document.body.classList.add('dark-theme');
+        
+        // Load Profile Picture
+        if (savedPic) {
+            document.getElementById("avatarDisplay").innerHTML = `<img src="${savedPic}" style="width:100%; height:100%; object-fit:cover;">`;
+        }
+
+        // --- Stats Calculation Logic ---
+        
+        // 1. Count Posted Events (From local storage key 'myPostedEvents')
+        const myLocalPosts = JSON.parse(localStorage.getItem("myPostedEvents") || "[]");
+        // Also check 'events' key just in case some are stored there
+        const otherEvents = JSON.parse(localStorage.getItem("events") || "[]");
+        const combinedPosted = [...myLocalPosts, ...otherEvents.filter(e => e.postedBy === user)];
+        
+        document.getElementById("countPosted").innerText = combinedPosted.length;
+
+        // 2. Count Registered Events
+        const registered = JSON.parse(localStorage.getItem("myRegisteredEvents") || "[]");
+        document.getElementById("countReg").innerText = registered.length;
+    };
+
+    // Close modal if clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('versionModal');
+        if (event.target == modal) closeChangelog();
+    }
+</script>
+</body>
+</html>

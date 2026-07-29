@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampHus | Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        * { box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.8)), 
+                        url('https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.1); 
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 40px;
+            border-radius: 20px;
+            width: 380px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+        }
+
+        .logo-text { font-size: 30px; font-weight: 600; color: #fff; margin-bottom: 10px; display: block; }
+        
+        h3 { font-weight: 400; margin-bottom: 30px; color: #ddd; }
+
+        .input-group { position: relative; margin-bottom: 15px; }
+
+        .input-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #ccc;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 12px 12px 45px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input::placeholder { color: #eee; }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 10px;
+            background: #9333ea; 
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover { background: #a855f7; transform: scale(1.02); }
+
+        .error { color: #ff5e5e; font-size: 13px; margin-top: 10px; min-height: 18px; }
+
+        .footer-links { margin-top: 20px; font-size: 14px; }
+        .footer-links a { color: #d8b4fe; text-decoration: none; }
+        .footer-links a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<div class="login-card">
+    <span class="logo-text">CampHus</span>
+    <h3>Welcome 👋</h3>
+
+    <div class="input-group">
+        <i data-lucide="mail" size="18"></i>
+        <input type="email" id="email" placeholder="Email">
+    </div>
+
+    <div class="input-group">
+        <i data-lucide="lock" size="18"></i>
+        <input type="password" id="password" placeholder="Password">
+    </div>
+
+    <div id="errorMsg" class="error"></div>
+
+    <button onclick="loginUser()">Login</button>
+    
+    <div class="footer-links">
+        <p><a href="forgot.html">Forgot Password?</a></p>
+        <p>New user? <a href="register.html" style="font-weight: bold;">Create Account</a></p>
+    </div>
+</div>
+
+<script src="js/auth.js"></script>
+
+<script>
+    // Initialize icons
+    lucide.createIcons();
+
+      async function loginUser() {
+    const emailInput = document.getElementById("email");
+    const errorMsg = document.getElementById("errorMsg");
+    
+    if (!emailInput) return;
+
+    const email = emailInput.value.trim().toLowerCase();
+    errorMsg.innerText = "Connecting to Campus Server... ⏳";
+
+    if (!email) {
+        errorMsg.innerText = "Please enter your email.";
+        return;
+    }
+
+    try {
+        // MUKKHYA MAATHAM: /get-users ku badhila /check-mail nu maathi irukken
+        const response = await fetch("https://tharika2004-event-project.hf.space/check-mail");
+        
+        if (!response.ok) throw new Error("Server not responding");
+
+        const backendUsers = await response.json();
+        
+        // Find user in the list returned by db.get_all_users_json()
+        const user = backendUsers.find(u => u.email.toLowerCase() === email);
+
+        if (user) {
+            // Success: Found in Aiven DB
+            localStorage.setItem("loggedInUser", user.name || "User"); 
+            localStorage.setItem("userEmail", user.email); 
+            localStorage.setItem("isLoggedIn", "true");
+            
+            // Admin Check
+            localStorage.setItem("role", email === "admin@gmail.com" ? "admin" : "user");
+
+            alert(`Welcome back, ${user.name || 'User'}! 🎉`);
+            window.location.href = "home.html";
+        } else {
+            errorMsg.innerText = "Email not registered in Campus DB! ❌";
+        }
+
+    } catch (err) {
+        console.error("Login Error:", err);
+        
+        // Fallback to LocalStorage
+        const localUsers = JSON.parse(localStorage.getItem("users") || "[]");
+        const localUser = localUsers.find(u => u.email.toLowerCase() === email);
+
+        if (localUser) {
+            localStorage.setItem("isLoggedIn", "true");
+            window.location.href = "home.html";
+        } else {
+            errorMsg.innerText = "Connection error. Please try again! ❌";
+        }
+    }
+}
+</script>
+</body>
+</html>

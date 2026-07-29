@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampHus | Discover Events</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script>
+        (function() {
+            const theme = localStorage.getItem('theme');
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark-theme');
+            }
+        })();
+    </script>
+    <style>
+        :root {
+            --bg-body: #F4F7FE; 
+            --sidebar-bg: #ffffff;
+            --text-main: #1B254B;
+            --text-dim: #A3AED0;
+            --primary: #9333ea;
+            --primary-light: #f3e8ff;
+            --card-bg: #ffffff;
+            --border: #E2E8F0;
+            --footer-bg: #ffffff;
+        }
+
+        .dark-theme {
+            --bg-body: #0f172a;
+            --sidebar-bg: #111c44;
+            --text-main: #ffffff;
+            --card-bg: rgba(255, 255, 255, 0.1);
+            --border: rgba(255, 255, 255, 0.1);
+            --primary-light: rgba(147, 51, 234, 0.2);
+            --footer-bg: #111c44;
+        }
+
+        * { box-sizing: border-box; font-family: 'Poppins', sans-serif; margin: 0; padding: 0; }
+        body { background-color: var(--bg-body); color: var(--text-main); display: flex; flex-direction: column; min-height: 100vh; transition: 0.3s; overflow-x: hidden; }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 280px; background: var(--sidebar-bg); padding: 40px 25px;
+            display: flex; flex-direction: column; position: fixed; left: -280px; 
+            height: 100vh; border-right: 1px solid var(--border); z-index: 1000;
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .sidebar.active { left: 0; }
+        .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; z-index: 999; }
+        .sidebar-overlay.active { display: block; }
+
+        .logo-area { display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; }
+        .logo-brand { display: flex; align-items: center; gap: 12px; }
+        .logo-icon-anim { 
+            width: 35px; height: 35px; background: var(--primary); border-radius: 10px; 
+            display: flex; align-items: center; justify-content: center; color: white;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(147, 51, 234, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(147, 51, 234, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(147, 51, 234, 0); }
+        }
+        .close-sidebar { background: none; border: none; color: var(--text-dim); cursor: pointer; }
+        .logo-text { font-size: 26px; font-weight: 700; }
+
+        .nav-btn {
+            width: 100%; display: flex; align-items: center; gap: 15px; padding: 12px 20px;
+            color: var(--text-main); background: transparent; border: 1px solid transparent;
+            cursor: pointer; font-size: 14px; margin-bottom: 12px; font-weight: 500; transition: 0.3s; border-radius: 25px;
+        }
+        .nav-btn:hover { background: var(--primary-light); color: var(--primary); }
+        .nav-btn.active { color: white; background: var(--primary); border-color: var(--primary); }
+
+        .main-content { flex: 1; padding: 30px 50px; transition: 0.4s; width: 100%; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px; gap: 20px; }
+        .menu-toggle { background: var(--card-bg); border: 1px solid var(--border); padding: 10px; border-radius: 12px; cursor: pointer; }
+
+        .search-bar {
+            background: var(--card-bg); border: 1px solid var(--border); border-radius: 30px;
+            padding: 12px 20px; display: flex; align-items: center; flex: 1; max-width: 500px; gap: 12px;
+        }
+        .search-bar input { border: none; background: none; outline: none; color: var(--text-main); width: 100%; }
+
+        .post-btn, .action-btn-main { background: var(--primary); color: white; border: none; padding: 10px 25px; border-radius: 25px; cursor: pointer; font-weight: 600; transition: 0.3s; }
+        .post-btn:hover, .action-btn-main:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(147, 51, 234, 0.3); }
+
+        .header-wishlist-btn {
+            background: var(--primary); color: white; border: none;
+            padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 600;
+            display: flex; align-items: center; gap: 8px; transition: 0.3s;
+        }
+
+        /* PURPLE HEART LOGIC */
+        .save-btn {
+            position: absolute; top: 10px; right: 10px; background: white; border: none;
+            width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center;
+            justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            z-index: 10; transition: 0.3s; color: var(--text-dim);
+        }
+        .save-btn.active { color: #9333ea !important; }
+        .save-btn.active svg { fill: #9333ea; stroke: #9333ea; }
+
+        /* EVENT CARD BUTTONS (Matches Wishlist style) */
+        
+.events-grid { 
+    display: grid; 
+    grid-template-columns: repeat(4, 1fr); /* Force 4 cards per row */
+    gap: 20px; 
+    padding: 10px 0;
+    width: 100%;
+}
+
+
+.details-btn-single {
+    width: 100%;
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: 0.3s;
+    margin-top: 10px;
+}
+
+.details-btn-single:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(147, 51, 234, 0.3);
+}
+
+/* Card image fix to keep uniform height */
+.event-card .img-wrapper {
+    height: 160px; /* Fixed height for all images */
+    overflow: hidden;
+    border-radius: 15px;
+    position: relative;
+    margin-bottom: 10px;
+}
+
+/* Tablet & Mobile adjustment */
+@media (max-width: 1024px) {
+    .events-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+    .events-grid { grid-template-columns: 1fr; }
+}
+        .filter-tags { display: flex; gap: 12px; margin-bottom: 30px; overflow-x: auto; padding-bottom: 10px; }
+        .tag { padding: 10px 20px; border-radius: 25px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text-main); font-size: 13px; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 8px; }
+        .tag.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* PROFESSIONAL FOOTER */
+        footer { background: var(--footer-bg); padding: 60px 50px 30px; border-top: 1px solid var(--border); margin-top: auto; }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1.5fr; gap: 50px; margin-bottom: 40px; }
+        .footer-brand h3 { color: var(--primary); font-size: 24px; margin-bottom: 15px; }
+        .footer-brand p { color: var(--text-dim); font-size: 14px; line-height: 1.6; max-width: 300px; }
+        .footer-links h4 { font-size: 16px; margin-bottom: 20px; }
+        .footer-links ul { list-style: none; }
+        .footer-links ul li { margin-bottom: 12px; }
+        .footer-links ul li a { text-decoration: none; color: var(--text-dim); font-size: 14px; transition: 0.3s; }
+        .footer-links ul li a:hover { color: var(--primary); padding-left: 5px; }
+        
+        .social-container { display: flex; gap: 15px; margin-top: 15px; }
+        .social-icon { 
+            width: 40px; height: 40px; border-radius: 10px; background: var(--bg-body); 
+            display: flex; align-items: center; justify-content: center; font-size: 18px;
+            color: var(--text-dim); transition: 0.4s; border: 1px solid var(--border);
+        }
+        .social-icon.insta:hover { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285aeb 90%); color: white; border-color: transparent; transform: translateY(-3px); }
+        .social-icon.tele:hover { background: #0088cc; color: white; border-color: transparent; transform: translateY(-3px); }
+
+        .footer-bottom { text-align: center; padding-top: 25px; border-top: 1px solid var(--border); color: var(--text-dim); font-size: 13px; }
+
+        .profile-display { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .profile-pic { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--primary); overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .profile-pic img { width: 100%; height: 100%; object-fit: cover; }
+        
+        svg { width: 20px; height: 20px; stroke-width: 2px; }
+        
+#pageTitle { 
+    margin-bottom: 35px; 
+    font-size: 36px; 
+    font-weight: 700; 
+    color: var(--text-main); 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 10px; 
+}
+
+/* Base style for the changing text */
+.change-text { 
+    color: var(--primary); 
+    position: relative; 
+}
+
+/* Typed Text Cursor Animation */
+.typed-text::after { 
+    content: '|'; 
+    position: absolute; 
+    right: -12px; 
+    color: var(--primary); 
+    animation: blink 0.7s infinite; 
+}
+
+@keyframes blink { 
+    0%, 100% { opacity: 1; } 
+    50% { opacity: 0; } 
+}
+    </style>
+</head>
+<body>
+    <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="logo-area">
+            <div class="logo-brand">
+                <div class="logo-icon-anim"><i data-lucide="graduation-cap"></i></div>
+                <div class="logo-text">CampHus</div>
+            </div>
+            <button class="close-sidebar" onclick="toggleSidebar()"><i data-lucide="chevron-left"></i></button>
+        </div>
+        
+        <div class="nav-group">
+            <button class="nav-btn active" onclick="goTo('home')"><i data-lucide="layout-grid"></i> All Events</button>
+            <button class="nav-btn" onclick="goTo('wishlist')"><i data-lucide="heart"></i> Wishlist</button>
+            <button class="nav-btn" onclick="showMyRegisteredEvents(this)"><i data-lucide="bookmark-check"></i> My Events</button>
+            <button class="nav-btn" onclick="goTo('worklist')"><i data-lucide="list-checks"></i> Work List</button>
+            <button class="nav-btn" onclick="goTo('posted')"><i data-lucide="send"></i> Posted Events</button>
+            <button class="nav-btn" onclick="goTo('settings')"><i data-lucide="user"></i> Account Settings</button>
+        </div>
+
+        <div class="theme-switch" onclick="toggleDarkMode()">
+            <i data-lucide="moon" id="themeIcon"></i>
+            <span id="themeText">Dark Mode</span>
+        </div>
+
+        <button class="nav-btn" onclick="logout()" style="margin-top: auto; color: #ff5e5e; border-color: #ff5e5e;">
+            <i data-lucide="log-out"></i> Logout
+        </button>
+    </aside>
+
+    <main class="main-content">
+        <header>
+            <div style="display: flex; align-items: center; gap: 15px; flex: 1;">
+                <button class="menu-toggle" onclick="toggleSidebar()"><i data-lucide="menu"></i></button>
+                <div class="search-bar">
+                    <i data-lucide="search" size="18" color="#A3AED0"></i>
+                    <input type="text" id="searchInput" placeholder="Search title, location, or category...">
+                </div>
+            </div>
+
+            <div class="header-right" style="display: flex; align-items: center; gap: 15px;">
+                <button class="header-wishlist-btn" onclick="goTo('wishlist')"><i data-lucide="heart" size="18"></i> Wishlist</button>
+                <button class="post-btn" onclick="preparePost()">Post Event</button>
+                <div class="profile-display" onclick="goTo('settings')">
+                    <span id="headerUserName" style="font-weight: 600; font-size: 14px;">User</span>
+                    <div class="profile-pic" id="headerProfilePic"><i data-lucide="user" size="20"></i></div>
+                </div>
+            </div>
+        </header>
+
+        <h1 id="pageTitle">
+    <span>CampHus</span> 
+    <span class="change-text typed-text"></span>
+</h1>
+
+        <div class="filter-tags" id="tagFilters">
+            <div class="tag active"><i data-lucide="zap"></i> Trending</div>
+            <div class="tag"><i data-lucide="code-2"></i> Hackathon</div>
+            <div class="tag"><i data-lucide="wrench"></i> Workshop</div>
+            <div class="tag"><i data-lucide="award"></i> Symposium</div>
+            <div class="tag"><i data-lucide="music"></i> Cultural</div>
+            <div class="tag"><i data-lucide="trophy"></i> Sport</div>
+        </div>
+
+        <div id="events" class="events-grid">
+            </div>
+    </main>
+
+    <footer>
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <h3>CampHus</h3>
+                <p>The central hub for college students to discover technical workshops, hackathons, and cultural fests.</p>
+            </div>
+            <div class="footer-links">
+                <h4>Explore</h4>
+                <ul>
+                    <li><a href="#" onclick="goTo('home')">All Events</a></li>
+                    <li><a href="#" onclick="goTo('posted')">Post Event</a></li>
+                    <li><a href="#" onclick="goTo('wishlist')">Wishlist</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h4>Contact Us</h4>
+                <p style="font-size: 14px; color: var(--text-dim);">Stay updated through our social channels.</p>
+                <div class="social-container">
+                    <a href="https://instagram.com/yourlink" class="social-icon insta"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="https://t.me/yourlink" class="social-icon tele"><i class="fa-brands fa-telegram"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 CampHus. All Rights Reserved. Built for Students.</p>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="js/app.js"></script>
+
+    <script>
+        // Home page-ku mattum thevaiyana chinna logic mattum inga irukattum
+        window.addEventListener('load', () => {
+            const loggedInUser = localStorage.getItem("loggedInUser");
+            const userProfilePic = localStorage.getItem("userProfilePic");
+
+            const nameElement = document.getElementById("headerUserName"); 
+            if (nameElement && loggedInUser) {
+                nameElement.innerText = loggedInUser;
+            }
+
+            const avatarElement = document.getElementById("headerProfilePic"); 
+            if (avatarElement && userProfilePic) {
+                avatarElement.innerHTML = `<img src="${userProfilePic}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+            }
+            
+            // Start the typing animation (Make sure this function is in app.js)
+            if (typeof typeText === "function") typeText();
+            
+            if (window.lucide) lucide.createIcons();
+        });
+    </script>
+</body>
+</html>

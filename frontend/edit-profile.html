@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile | CampHus</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+    (function() {
+        const theme = localStorage.getItem('theme');
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark-theme');
+        }
+    })();
+</script>
+    <style>
+        :root {
+            --bg-body: #F4F7FE;
+            --text-main: #1B254B;
+            --primary: #9333ea;
+            --primary-light: #f3e8ff;
+            --card-bg: #ffffff;
+            --border: #E2E8F0;
+            --text-dim: #A3AED0;
+            --input-bg: #ffffff;
+        }
+
+        /* Dark Mode Variables - Matching Home.html */
+       .dark-theme {
+    --bg-body: #0f172a;
+    --sidebar-bg: #111c44;
+    --text-main: #ffffff;
+    --card-bg: rgba(255, 255, 255, 0.1);
+    --border: rgba(255, 255, 255, 0.1);
+    --primary-light: rgba(147, 51, 234, 0.2);
+    --pure-black: #ffffff;
+}
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background: var(--bg-body); 
+            color: var(--text-main); 
+            margin: 0; 
+            padding: 0; 
+            transition: 0.3s ease;
+        }
+
+        /* Header Styling */
+        .header { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            background: var(--primary); 
+            color: white; 
+            padding: 15px 25px; 
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .header h2 { margin: 0; font-size: 18px; font-weight: 600; }
+        .nav-btn { 
+            background: rgba(255,255,255,0.2); 
+            border: none; 
+            color: white; 
+            padding: 8px 18px; 
+            border-radius: 25px; 
+            cursor: pointer; 
+            font-weight: 500; 
+            transition: 0.3s;
+        }
+        .nav-btn:hover { background: rgba(255,255,255,0.3); }
+
+        .container { 
+            padding: 40px 20px; 
+            max-width: 500px; 
+            margin: auto; 
+        }
+
+        .edit-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 25px;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Profile Picture Section */
+        .avatar-container { text-align: center; margin-bottom: 30px; }
+        .avatar { 
+            width: 120px; 
+            height: 120px; 
+            background: var(--primary-light); 
+            border-radius: 50%; 
+            margin: 0 auto 15px; 
+            overflow: hidden; 
+            border: 4px solid var(--primary); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .change-photo-btn { 
+            color: var(--primary); 
+            background: var(--primary-light); 
+            border: 1px solid var(--primary); 
+            padding: 8px 20px; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            font-size: 13px; 
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        .change-photo-btn:hover { background: var(--primary); color: white; }
+
+        /* Form Inputs */
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-size: 12px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
+        
+        input { 
+            width: 100%; 
+            padding: 14px 20px; 
+            border: 1px solid var(--border); 
+            border-radius: 25px; 
+            background: var(--input-bg); 
+            color: var(--text-main); 
+            outline: none; 
+            font-size: 14px;
+            transition: 0.3s;
+        }
+        input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+
+        /* Preferences Section */
+        .tag-input-wrapper { display: flex; gap: 10px; }
+        .add-tag-btn { 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            border-radius: 25px; 
+            padding: 0 20px; 
+            cursor: pointer; 
+            font-weight: 600; 
+        }
+        
+        .tag { 
+            background: var(--primary-light); 
+            color: var(--primary);
+            padding: 8px 18px; 
+            border-radius: 25px; 
+            font-size: 13px; 
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid var(--primary);
+        }
+        .tag-remove { color: #ff5e5e; cursor: pointer; font-size: 18px; line-height: 1; }
+
+        .save-btn { 
+            width: 100%; 
+            padding: 16px; 
+            border-radius: 25px; 
+            border: none; 
+            cursor: pointer; 
+            font-weight: 600; 
+            margin-top: 20px; 
+            background: var(--primary); 
+            color: white; 
+            font-size: 16px;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(147, 51, 234, 0.3);
+        }
+        .save-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(147, 51, 234, 0.4); }
+    </style>
+
+    <script>
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.documentElement.classList.add('dark-theme');
+            const observer = new MutationObserver(() => {
+                if (document.body) {
+                    document.body.classList.add('dark-theme');
+                    observer.disconnect();
+                }
+            });
+            observer.observe(document.documentElement, { childList: true });
+        }
+    </script>
+</head>
+<body>
+
+    <div class="header">
+        <button class="nav-btn" onclick="location.href='settings.html'">Cancel</button>
+        <h2>Edit Profile</h2>
+        <button class="nav-btn" onclick="saveChanges()">Done</button>
+    </div>
+
+    <div class="container">
+        <div class="edit-card">
+            <input type="file" id="fileInput" accept="image/*" style="display: none;">
+            
+            <div class="avatar-container">
+                <div class="avatar" id="avatarPreview">
+                    <img src="https://via.placeholder.com/150" id="profileImg">
+                </div>
+                <button class="change-photo-btn" onclick="document.getElementById('fileInput').click()">
+                    <i data-lucide="camera" style="width:14px; vertical-align:middle; margin-right:5px;"></i> Change Photo
+                </button>
+            </div>
+
+            <div class="form-group">
+                <label>Student Name</label>
+                <input type="text" id="newName" placeholder="Enter your name">
+            </div>
+
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="newEmail" placeholder="yourname@college.edu">
+            </div>
+
+            <div class="form-group">
+                <label>Interests & Preferences</label>
+                <div class="tag-input-wrapper">
+                    <input type="text" id="prefInput" placeholder="Add interest (e.g. Coding)">
+                    <button class="add-tag-btn" onclick="addPreference()">Add</button>
+                </div>
+                <div id="prefList" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:15px;"></div>
+            </div>
+
+            <button class="save-btn" onclick="saveChanges()">Save All Changes</button>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        lucide.createIcons();
+
+        let myPreferences = JSON.parse(localStorage.getItem("userPrefs")) || ["Tech", "Music"];
+        const profileImg = document.getElementById('profileImg');
+        const nameInput = document.getElementById("newName");
+        const emailInput = document.getElementById("newEmail");
+
+        // Handle Image Upload
+        document.getElementById('fileInput').addEventListener('change', function() {
+            const reader = new FileReader();
+            reader.onload = e => { profileImg.src = e.target.result; };
+            reader.readAsDataURL(this.files[0]);
+        });
+
+        function renderPrefs() {
+            const list = document.getElementById("prefList");
+            list.innerHTML = myPreferences.map((p, i) => `
+                <div class="tag">
+                    ${p} 
+                    <span onclick="removePreference(${i})" class="tag-remove">&times;</span>
+                </div>
+            `).join('');
+        }
+
+        function addPreference() {
+            const input = document.getElementById("prefInput");
+            const val = input.value.trim();
+            if (val && !myPreferences.includes(val)) { 
+                myPreferences.push(val); 
+                input.value = ""; 
+                renderPrefs(); 
+            }
+        }
+
+        function removePreference(i) {
+            myPreferences.splice(i, 1);
+            renderPrefs();
+        }
+
+        function saveChanges() {
+            const name = nameInput.value.trim();
+            const email = emailInput.value.trim();
+            const pic = profileImg.src;
+
+            if (name === "" || email === "") {
+                alert("Please fill in both Name and Email.");
+                return;
+            }
+
+            localStorage.setItem("loggedInUser", name);
+            localStorage.setItem("userEmail", email);
+            localStorage.setItem("userProfilePic", pic);
+            localStorage.setItem("userPrefs", JSON.stringify(myPreferences));
+
+            alert("Profile updated successfully!");
+            window.location.href = "settings.html";
+        }
+
+        window.onload = function() {
+            nameInput.value = localStorage.getItem("loggedInUser") || "";
+            emailInput.value = localStorage.getItem("userEmail") || "";
+            const savedPic = localStorage.getItem('userProfilePic');
+            if (savedPic) profileImg.src = savedPic;
+            renderPrefs();
+        };
+    </script>
+</body>
+</html>

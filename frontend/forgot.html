@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampHus | Forgot Password</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Dark overlay background to match login page */
+            background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), 
+                        url('https://images.unsplash.com/photo-1540575861501-7cf05a4b125a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* Glassmorphism Card styling */
+        .login-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 28px;
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            color: white;
+        }
+
+        .brand-logo {
+            font-size: 32px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 30px;
+        }
+
+        /* Input field styling with translucent background */
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            color: white;
+            outline: none;
+            transition: 0.3s;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
+
+        .input-group input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .input-group input:focus {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #7252d2; 
+        }
+
+        /* Primary action button with purple theme */
+        .reg-btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 14px;
+            background: #9333ea;
+            border: none;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        .reg-btn:hover {
+            background: #9072f2;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(163, 137, 244, 0.4);
+        }
+
+        .back-link {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .back-link a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: 0.3s;
+            font-weight: 500;
+        }
+
+        .back-link a:hover {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-card">
+    <div class="brand-logo">CampHus</div>
+    <h2 style="margin-bottom: 5px; font-weight: 600; font-size: 20px;">Forgot Password</h2>
+    <p class="subtitle">Enter email to receive OTP</p>
+
+    <div class="input-group">
+        <input type="email" id="email" placeholder="Enter Registered Email">
+    </div>
+
+    <button class="reg-btn" onclick="sendReset()">Send Recovery OTP</button>
+
+    <p class="back-link">
+        <a href="login.html">← Back to Login</a>
+    </p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="js/auth.js"></script>
+<script>
+    /**
+     * Logic to handle password reset request
+     * Checks if email exists and triggers EmailJS OTP
+     */
+    function sendReset(){
+        const email = document.getElementById("email").value.trim();
+        
+        // Basic validation
+        if(email === "") { 
+            alert("Please enter your registered email"); 
+            return; 
+        }
+
+        // Check if user is in local storage
+        const users = JSON.parse(localStorage.getItem("users")) || [];
+        if(!users.find(u => u.email === email)){ 
+            alert("This email is not registered in our system."); 
+            return; 
+        }
+
+        // Store email for the reset phase
+        localStorage.setItem("resetEmail", email);
+
+        // Call global sendOTP function from auth.js
+        sendOTP(email)
+        .then((response) => {
+            console.log("OTP Sent Successfully:", response.status);
+            alert("A verification code has been sent to your email! ✅");
+            window.location = "reset.html"; 
+        })
+        .catch((error) => {
+            console.error("EmailJS Failed:", error);
+            alert("Failed to send OTP. Please check your connection or EmailJS quota. ❌");
+        });
+    }
+</script>
+</body>
+</html>

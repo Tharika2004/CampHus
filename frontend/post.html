@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampHus | Post Event</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script>
+    (function() {
+        const theme = localStorage.getItem('theme');
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark-theme');
+        }
+    })();
+</script>
+    <style>
+        :root { --bg-body: #F4F7FE; --text-main: #1B254B; --primary: #9333ea; --primary-hover: #7e22ce; --primary-light: #f3e8ff; --card-bg: #ffffff; --border: #E2E8F0; }
+        .dark-theme {
+    --bg-body: #0f172a;
+    --sidebar-bg: #111c44;
+    --text-main: #ffffff;
+    --card-bg: rgba(255, 255, 255, 0.1);
+    --border: rgba(255, 255, 255, 0.1);
+    --primary-light: rgba(147, 51, 234, 0.2);
+    --pure-black: #ffffff;
+}
+        * { box-sizing: border-box; font-family: 'Poppins', sans-serif; margin: 0; padding: 0; }
+        body { background-color: var(--bg-body); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; transition: 0.3s; }
+        .form-box { background: var(--card-bg); padding: 40px; border-radius: 25px; width: 100%; max-width: 450px; box-shadow: 0px 18px 40px rgba(0, 0, 0, 0.1); border: 1px solid var(--border); }
+        h2 { text-align: center; margin-bottom: 25px; font-weight: 700; }
+        input, select, textarea { width: 100%; padding: 12px 20px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 25px; outline: none; font-size: 14px; background: var(--bg-body); color: var(--text-main); }
+        .upload-box { display: block; padding: 15px; border: 2px dashed var(--primary); border-radius: 20px; text-align: center; cursor: pointer; color: var(--primary); background: var(--primary-light); margin-bottom: 15px; font-weight: 500; }
+        .submit-btn { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 25px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+        .back-link { display: block; text-align: center; margin-top: 15px; color: #A3AED0; text-decoration: none; font-size: 14px; }
+        #preview { width: 100%; max-height: 150px; object-fit: cover; border-radius: 20px; margin-bottom: 15px; display: none; }
+    </style>
+</head>
+<body>
+<div class="form-box">
+    <h2 id="formTitle">Post New Event</h2>
+    <form id="postForm">
+        <input type="text" id="event_name" placeholder="Event Name" required>
+        <input type="text" id="college_name" placeholder="College Name" required>
+        <input type="text" id="venue" placeholder="Venue / Location" required>
+        <div style="display: flex; gap: 10px;">
+            <input type="date" id="event_date" required>
+            <input type="time" id="event_time" required>
+        </div>
+        <select id="event_type">
+            <option value="Hackathon">Hackathon</option>
+            <option value="Symposium">Symposium</option>
+            <option value="Workshop">Workshop</option>
+            <option value="Cultural">Cultural</option>
+            <option value="Sport">Sport</option>
+        </select>
+        <textarea id="desc" placeholder="Event Description"></textarea>
+        <input type="url" id="qr_link" placeholder="Registration Link (e.g. Google Form URL)">
+        
+        <label class="upload-box">
+            <input type="file" id="posterFile" accept="image/*" hidden>
+            <span id="uploadText">📷 Click to upload poster</span>
+        </label>
+        <img id="preview" alt="Poster Preview">
+        <button type="submit" id="submitBtn" class="submit-btn">Submit Event</button>
+        <a href="home.html" class="back-link">Back to Dashboard</a>
+    </form>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+    let posterData = "";
+    const editIndex = localStorage.getItem("editIndex");
+
+    // Load data if editing
+    window.onload = function() {
+    // Theme setup
+    if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-theme');
+    
+    // Retrieve the index of the event being edited
+    const editIndex = localStorage.getItem("editIndex");
+    
+    if (editIndex !== null) {
+        // IMPORTANT: Get data from the correct local storage key
+        const myLocalEvents = JSON.parse(localStorage.getItem("myPostedEvents") || "[]");
+        const data = myLocalEvents[editIndex];
+
+        if (data) {
+            // Update UI for Edit Mode
+            document.getElementById("formTitle").innerText = "Edit Your Event";
+            document.getElementById("submitBtn").innerText = "Update Event";
+            
+            // Pre-fill the form fields with existing data
+            document.getElementById("event_name").value = data.event_name || "";
+            document.getElementById("college_name").value = data.college_name || "";
+            document.getElementById("venue").value = data.venue || "";
+            document.getElementById("event_date").value = data.event_date || "";
+            document.getElementById("event_time").value = data.event_time || "";
+            document.getElementById("event_type").value = data.event_type || "Hackathon";
+            document.getElementById("desc").value = data.description || "";
+            document.getElementById("qr_link").value = data.source_link || "";
+            
+            if (data.poster_image) {
+                posterData = data.poster_image;
+                document.getElementById("preview").src = posterData;
+                document.getElementById("preview").style.display = "block";
+            }
+        }
+    }
+};
+
+   document.getElementById("postForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    
+    const submitBtn = document.getElementById("submitBtn");
+    // String-aa irukkura index-ai Number-aa mathuroam, illana null-aa vechuproam
+    let editIndex = localStorage.getItem("editIndex");
+    
+    submitBtn.innerText = "Processing... ⏳";
+    submitBtn.disabled = true;
+
+    const userEmail = localStorage.getItem("userEmail");
+
+    const eventObj = {
+        event_name: document.getElementById("event_name").value,
+        college_name: document.getElementById("college_name").value,
+        venue: document.getElementById("venue").value,
+        event_date: document.getElementById("event_date").value,
+        event_time: document.getElementById("event_time").value,
+        event_type: document.getElementById("event_type").value,
+        description: document.getElementById("desc").value,
+        source_link: document.getElementById("qr_link").value,
+        poster_image: posterData || "https://picsum.photos/400/250",
+        posted_by: userEmail // User tracking
+    };
+
+    try {
+        // Global Sync
+        await fetch("https://tharika2004-event-project.hf.space/add-event", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(eventObj)
+        });
+
+        let myLocalEvents = JSON.parse(localStorage.getItem("myPostedEvents") || "[]");
+
+        // FIX: null check and undefined check
+        if (editIndex !== null && editIndex !== undefined && editIndex !== "") {
+            myLocalEvents[parseInt(editIndex)] = eventObj;
+            localStorage.removeItem("editIndex"); 
+            alert("Event Updated Successfully! ✅");
+        } else {
+            myLocalEvents.push(eventObj);
+            alert("Event Posted Successfully! 🚀");
+        }
+
+        localStorage.setItem("myPostedEvents", JSON.stringify(myLocalEvents));
+        window.location.href = "home.html";
+
+    } catch (error) {
+        console.error("Error:", error);
+        alert("Server error! Saved locally.");
+        
+        // Backup: Server error vandhalum local-la save panniduvom
+        let myLocalEvents = JSON.parse(localStorage.getItem("myPostedEvents") || "[]");
+        if (editIndex !== null) {
+            myLocalEvents[parseInt(editIndex)] = eventObj;
+            localStorage.removeItem("editIndex");
+        } else {
+            myLocalEvents.push(eventObj);
+        }
+        localStorage.setItem("myPostedEvents", JSON.stringify(myLocalEvents));
+        window.location.href = "home.html";
+    } finally {
+        submitBtn.disabled = false;
+    }
+});
+// --- IMAGE UPLOAD LOGIC ---
+document.getElementById("posterFile").addEventListener("change", function() {
+    const file = this.files[0];
+    const preview = document.getElementById("preview");
+    const uploadText = document.getElementById("uploadText");
+
+    if (file) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            // Global variable 'posterData'-la image details-ai save panrom
+            posterData = e.target.result; 
+            
+            // Preview image-ai show panrom
+            preview.src = posterData;
+            preview.style.display = "block";
+            uploadText.innerText = "📷 Image Selected";
+        };
+
+        reader.readAsDataURL(file); // File-ai Base64 format-ku mathum
+    }
+});
+</script>
+</body>
+</html>
