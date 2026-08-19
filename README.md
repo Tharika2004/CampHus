@@ -1,6 +1,6 @@
 # 🎓 CampHus – College Event Aggregator
 
-CampHus is a web-based platform that automatically collects, processes, and displays college event information from multiple social media platforms. The application helps students discover workshops, hackathons, seminars, cultural events, technical events, and other campus activities through a single centralized platform.
+CampHus project is a web-based platform that automatically collects, processes, and displays college event information from multiple social media platforms. The application helps students discover workshops, hackathons, seminars, cultural events, technical events, and other campus activities through a single centralized platform.
 
 ---
 
